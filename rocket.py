@@ -1,5 +1,7 @@
 import sys
 import pygame
+import random
+from pygame.sprite import Sprite
 
 class Game:
     def __init__(self):
@@ -13,6 +15,8 @@ class Game:
         )
         pygame.display.set_caption('Moving Rocket')
         self.rocket = Rocket(self)
+        self.obstacles = pygame.sprite.Group()
+        self.obstacles_list = self.generate_obstacles()
 
     def run(self):
         while True:
@@ -21,9 +25,43 @@ class Game:
             self._update_screen()
             self.clock.tick(60)
 
+    def generate_obstacles(self):
+        MARGIN = 50
+        base_obstacle = Obstacles(self)
+        x = base_obstacle.rect.x + 10
+        while x < self.screen_width:
+            new_obstacle = Obstacles(self)
+            new_obstacle.rect.x = x
+            new_obstacle.rect.y = new_obstacle.starting_position
+            self.obstacles.add(new_obstacle)
+            x += MARGIN
+        
+    def shit(self):
+        obstacles_list = []
+        MARGIN = 50
+        image = pygame.image.load('assets/Bullet_1.bmp')
+        x = image.get_rect().x
+        while x < self.screen_width:
+            obs = {
+                'img': 'assets/Bullet_1.bmp',
+                'x': x + 10,
+                'y': 50
+            }
+            obstacles_list.append(obs)
+            x += MARGIN
+        return obstacles_list
+
+    def _update_obstacles(self):
+        self.obstacles.update()
+#        for obstacle in self.obstacles:
+#            img = pygame.image.load('assets/Bullet_1.bmp')
+#            self.screen.blit(img, (obstacle['x'], obstacle['y']))
+
     def _update_screen(self):
         self.screen.fill(self.bg_color)
         self.rocket.blitme()
+        self.obstacles.draw(self.screen)
+        self._update_obstacles()
         pygame.display.flip()
 
     def _check_events(self):
@@ -56,19 +94,41 @@ class Rocket:
         self.rect.center = self.screen_rect.center
         self.vertical_movement = ''
         self.horizontal_movement = ''
+        self.speed = 3
 
     def blitme(self):
         self.screen.blit(self.image, self.rect)
 
     def update(self):
         if self.horizontal_movement == pygame.K_RIGHT:
-            self.rect.x += 1
+            self.rect.x += self.speed
         if self.horizontal_movement == pygame.K_LEFT:
-            self.rect.x -= 1
+            self.rect.x -= self.speed
         if self.vertical_movement == pygame.K_UP:
-            self.rect.y -= 1
+            self.rect.y -= self.speed
         if self.vertical_movement == pygame.K_DOWN:
-            self.rect.y += 1
+            self.rect.y += self.speed
+
+class Obstacles(Sprite):
+    def __init__(self, game):
+        super().__init__()
+        self.screen = game.screen
+        self.screen_height = game.screen_height
+        self.image = pygame.image.load('assets/Bullet_1.bmp')
+        self.rect = self.image.get_rect()
+        self.rect.x = self.rect.width
+        self.rect.y = self.rect.height
+        self.starting_position = random.randint(-abs(self.screen_height), 0)
+        self.fall_speed = 2
+    
+    def update(self):
+        if self.rect.y > self.screen_height:
+            self.rect.y = 0 - self.image.get_rect().height
+        else:
+            self.rect.y += self.fall_speed
+
+
+
 
 if __name__ == '__main__':
     game = Game()
