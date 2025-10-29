@@ -51,17 +51,11 @@ class Game:
             x += MARGIN
         return obstacles_list
 
-    def _update_obstacles(self):
-        self.obstacles.update()
-#        for obstacle in self.obstacles:
-#            img = pygame.image.load('assets/Bullet_1.bmp')
-#            self.screen.blit(img, (obstacle['x'], obstacle['y']))
-
     def _update_screen(self):
         self.screen.fill(self.bg_color)
         self.rocket.blitme()
         self.obstacles.draw(self.screen)
-        self._update_obstacles()
+        self.obstacles.update()
         pygame.display.flip()
 
     def _check_events(self):
@@ -114,7 +108,8 @@ class Obstacles(Sprite):
         super().__init__()
         self.screen = game.screen
         self.screen_height = game.screen_height
-        self.image = pygame.image.load('assets/Bullet_1.bmp')
+        self.image_index = 0
+        self.image = pygame.image.load(f'assets/Bullet_{self.image_index}.bmp')
         self.rect = self.image.get_rect()
         self.rect.x = self.rect.width
         self.rect.y = self.rect.height
@@ -122,12 +117,15 @@ class Obstacles(Sprite):
         self.fall_speed = 2
     
     def update(self):
+        if self.image_index == 7:
+            self.image_index = 0
+        self.image = pygame.image.load(f'assets/Bullet_{self.image_index}.bmp')
+        self.image_index += 1
+
         if self.rect.y > self.screen_height:
             self.rect.y = 0 - self.image.get_rect().height
         else:
             self.rect.y += self.fall_speed
-
-
 
 
 if __name__ == '__main__':
